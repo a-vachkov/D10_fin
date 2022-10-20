@@ -1,0 +1,145 @@
+import random
+from news_portal_app.models import Author, User, Category, Post, Comment
+
+
+users = [
+    "Petr",
+    "Ivan",
+]
+
+authors = users[:]
+
+categories = [
+    "IT",
+    "Economy",
+    "Cooking",
+    "Politics"
+]
+
+article_text1 = '''
+   На сайте есть уже 2 рецепта кукси. Но хотя концепция едина, каждый готовит немного по-своему. 
+   Раньше мы ели это блюдо исключительно в кафе, но уже года два готовлю его дома сама.. 
+   Готовить это блюдо меня научил знакомый, работающий поваром в корейском кафе. 
+   Получается очень вкусно. Особенно хорошо летом, когда ничего горячего не хочется, а окрошка 
+   уже порядком надоела. Попробуйте приготовить. Необычно, а главное - малокалорийно. 
+   Кажется, что готовить долго и трудно, но уже после первого раза вы поймeте, что трудностей нет. 
+'''
+
+article_text2 = ''' 
+   Объектно-ориентированное программирование (сокр. ООП) — методология программирования, 
+   основанная на представлении программы в виде совокупности взаимодействующих объектов, 
+   каждый из которых является экземпляром определённого класса, а классы образуют иерархию наследования[1].
+'''
+
+
+article_text3 = ''' 
+   Политическая экономика – это направление в развитии политического мышления нового времени. 
+   Развитие политической экономики припало еще на конец XVIII века и тридцатые годы XIX века. 
+   Авторами теории политической экономики являются такие известные теоретики, как Адам Смит, 
+   Дэвид Рикардо и другие. Особой чертой пропагандистов данной теории был политический либерализм. 
+   В то же время теоретиками был сформулирован базисный фундамент теории трудовой стоимости.
+'''
+
+
+
+'''1. Создать двух пользователей (с помощью метода User.objects.create_user('username')).'''
+def create_users():
+    for name in users:
+        User.objects.create_user(username=name)
+    print(User.objects.all())
+
+
+'''2. Создать два объекта модели Author, связанные с пользователями.'''
+def create_authors():
+    for name in authors:
+        Author.objects.create(user=User.objects.get_by_natural_key(username=name))
+    print(Author.objects.all())
+
+
+'''3. Добавить 4 категории в модель Category.'''
+def create_categories():
+    for category in categories:
+        Category.objects.create(name_category=category)
+    print(Category.objects.all())
+
+
+'''4. Добавить 2 статьи и 1 новость.'''
+'''5. Присвоить им категории (как минимум в одной статье/новости должно быть не меньше 2 категорий).'''
+def create_articles():
+    article_authors = Author.objects.all()
+    post1 = Post.objects.create(author=article_authors[0], title="Готовим куки правильно", text=article_text1)
+    post1.category.add(Category.objects.get(id=1), Category.objects.get(id=3))
+    post2 = Post.objects.create(author=article_authors[1], title="Осваиваем ООП", text=article_text2)
+    post2.category.add(Category.objects.get(id=1), Category.objects.get(id=2))
+    news1 = Post.objects.create(author=article_authors[1], title="Политическая экономика",
+                               type=Post.news, text=article_text3)
+    news1.category.add(Category.objects.get(id=2), Category.objects.get(id=4))
+    print(Post.objects.all())
+
+
+'''6. Создать как минимум 4 комментария к разным объектам модели Post (в каждом объекте должен быть 
+   как минимум один комментарий).
+'''
+def add_comments():
+    users = User.objects.all()
+    posts = Post.objects.all()
+    for user in users:
+        for post in posts:
+            text = f"{random.choice(['Тема не расскрыта', 'А мне понравилось!', 'Заказуха!!!!'])}"
+            Comment.objects.create(post=post, user=user, text=text)
+
+'''7. Применяя функции like() и dislike() к статьям/новостям и комментариям, 
+   скорректировать рейтинги этих объектов.'''
+def like_dislike_posts_and_comments():
+    for post in Post.objects.all():
+        action = random.choice([post.like, post.like, post.dislike])
+        action()
+    for comment in Comment.objects.all():
+        action = random.choice([comment.like, comment.like, comment.dislike])
+        action()
+
+'''8. Обновить рейтинги пользователей.'''
+def update_ratings():
+    for author in Author.objects.all():
+        author.update_rating()
+
+
+'''9. Вывести username и рейтинг лучшего пользователя (применяя сортировку и 
+   возвращая поля первого объекта).
+'''
+def print_best_rating_author():
+    top_rating_author = Author.objects.order_by('-rating').first()
+    print("\n=== Польхователь с самым высоким рэйтингом ===")
+    print(f"{top_rating_author.user.username}, rating={top_rating_author.rating}")
+
+'''10. Вывести дату добавления, username автора, рейтинг, заголовок и превью лучшей статьи, 
+   основываясь на лайках/дислайках к этой статье.
+'''
+'''11. Вывести все комментарии (дата, пользователь, рейтинг, текст) к этой статье.'''
+def print_best_rating_article():
+    post = Post.objects.order_by('-rating').first()
+    print("\n=== Статья с самым высоким рейтингом ===")
+    print(f"Дата добавления: {post.time}\n"
+          f"Автор: {post.author.user.username}\n"
+          f"Рейтинг: {post.rating}\n"
+          f"Заголовок: {post.title}\n"
+          f"Превью: {post.preview(length=128)}")
+
+
+
+create_users()
+create_authors()
+create_categories()
+create_articles()
+add_comments()
+for _ in range(10):
+    like_dislike_posts_and_comments()
+
+
+
+u1 = Author.objects.get(pk=1)
+u1.update_rating()
+u2 = Author.objects.get(pk=2)
+u2.update_rating()
+print_best_rating_author()
+print_best_rating_article()

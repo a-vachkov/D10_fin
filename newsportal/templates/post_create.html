@@ -1,0 +1,20 @@
+{% extends 'flatpages/default.html' %}
+
+{% load custom_filters %} <!-- не забываем заранее загружать наши фильтры! -->
+
+{% load crispy_forms_tags %}
+
+{% block title %} News {% endblock title %}
+
+{% block content %}
+<br>
+<h3>Создание/редактирование публикации</h3>
+<hr>
+<form method="POST">
+    {% csrf_token %}
+    {{ form|crispy }} <!-- Теперь нам нужна только готовая форма и кнопка -->
+    <input type="submit" value="Опубликовать">
+</form>
+<br>
+<br>
+{% endblock content %}
